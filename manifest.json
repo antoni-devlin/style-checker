@@ -1,9 +1,13 @@
 {
   "manifest_version": 3,
   "name": "GOV.UK Style Assistant",
-  "version": "1.1",
-  "description": "Scans inputs for core editorial and style guide rule violations.",
+  "version": "0.1",
+  "description": "Checks content in currently open publisher draft for style issues.",
   "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
