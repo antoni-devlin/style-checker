@@ -1,4 +1,3 @@
-// Background script for handling fetch requests (fixes issues with CORS)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkLinks") {
     checkLinks(request.urls)
@@ -20,10 +19,10 @@ async function checkLinks(urls) {
       const response = await Promise.race([
         fetch(url, { method: "HEAD" }).catch(() =>
           // If HEAD fails, try a GET
-          fetch(url, { method: "GET" })
+          fetch(url, { method: "GET" }),
         ),
         new Promise((resolve, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 5000)
+          setTimeout(() => reject(new Error("Timeout")), 5000),
         ),
       ]);
 
