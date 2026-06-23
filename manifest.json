@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "GOV.UK Style Assistant",
   "version": "0.1",
-  "description": "Checks content in currently open publisher draft for style issues.",
+  "description": "Checks publisher content for style issues and broken links.",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -11,7 +11,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["style-rules.js", "content.js"],
       "run_at": "document_idle"
     }
   ]

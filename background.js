@@ -1,4 +1,4 @@
-// Background script for handling fetch requests (bypass CORS)
+// Background script for handling fetch requests (fixes issues with CORS)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkLinks") {
     checkLinks(request.urls)
@@ -8,7 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch((error) => {
         sendResponse({ success: false, error: error.message });
       });
-    return true; // indicates we'll send response asynchronously
+    return true;
   }
 });
 
@@ -19,7 +19,7 @@ async function checkLinks(urls) {
     try {
       const response = await Promise.race([
         fetch(url, { method: "HEAD" }).catch(() =>
-          // If HEAD fails, try GET
+          // If HEAD fails, try a GET
           fetch(url, { method: "GET" })
         ),
         new Promise((resolve, reject) =>
@@ -33,11 +33,10 @@ async function checkLinks(urls) {
         isBroken: response.status < 200 || response.status >= 300,
       });
     } catch (error) {
-      // Network error, timeout, or other failure
       results.push({
         href: url,
         status: error.message || "Error",
-        isBroken: false, // don't count errors as broken
+        isBroken: false, // Errors here don't necessarily mean the link is broken, so don't count this as broken. Doesn't handle "link is broken, and something went wrong with the script"
       });
     }
   }

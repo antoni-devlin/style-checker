@@ -1,56 +1,16 @@
-// Define the 10 style rules from the GOV.UK style guide
-const styleRules = [
-  {
-    name: "Don't use full stops in abbreviations (BBC, not B.B.C.)",
-    regex: /\b[A-Z]\.[A-Z]\.(?:[A-Z]\.)*\b/,
-  },
-  {
-    name: "Don't use decimals in a whole currency amount (£75, not £75.00)",
-    regex: /£\d+\.00\b/,
-  },
-  {
-    name: "Don't use hyphens in a sort code (12 23 56, not 12-23-56)",
-    regex: /\b\d{2}-\d{2}-\d{2}\b/,
-  },
-  {
-    name: "Use 'select' instead of 'click' for a UI element instruction",
-    regex: /\bclick\s+(?:on\s+)?(?:the\s+)?['"]?[A-Z][A-Za-z\s]+['"]?\b/i,
-  },
-  {
-    name: "Don't use negative contractions (do not, no don't)",
-    regex: /\b(can't|don't|won't|shouldn't|couldn't|wouldn't)\b/i,
-  },
-  {
-    name: "Use 'or' instead of a slashes (3 or 4, not 3/4)",
-    regex: /(?<!\/[^\s]*)\b\w+\/\w+\b(?!\.\w+)/,
-  },
-  {
-    name: "Don't hyphenate 'A-level' (A Level, not A-Level - level should be lower case)",
-    regex: /\bA-level\b/i,
-  },
-  {
-    name: "Don't use apostrophes to pluralise acronyms/qualifications (GCSEs not GCSEs)",
-    regex: /\b(GCSE|A\*|SME|URL)('s)\b/,
-  },
-  {
-    name: "Don't use hyphens in a date or time range, use 'to' instead (10am to 5pm, not 10am-5pm)",
-    regex: /\b(\d+(?:am|pm)?)\s*[-–—]\s*(\d+(?:am|pm)?)\b/,
-  },
-  {
-    name: "Don't use 'in order to' (use 'to' instead)",
-    regex: /\bin\s+order\s+to\b/i,
-  },
-];
+// `style-rules.js` is loaded before this script by the manifest.
+// It defines `styleRules` in the same content script environment.
 
-// Global map of violation occurrences so sidebar links can reference them
+// Map of instances of policies not being followed
 window.__govukStyleViolations = window.__govukStyleViolations || {};
 
-// Global map of broken links so sidebar links can reference them
+// Map of insteances of broken links
 window.__govukBrokenLinks = window.__govukBrokenLinks || {};
 
-// Function to update the sidebar UI with found violations
+// Function to update the sidebar when a style rule match is found
+// Publisher has an exisiting element with class 'sidebar-components', so can inject stuff into it. Style checks and broken link stuff will appear under the "Preview" link
 function updateSidebarUI(foundViolations) {
-  // Find the user's existing sidebar container
+  // Finds sidebar
   const sidebarContainer = document.querySelector(".sidebar-components");
 
   if (!sidebarContainer) {
@@ -60,7 +20,7 @@ function updateSidebarUI(foundViolations) {
     return;
   }
 
-  // Look for our specific results wrapper, or build it if missing
+  // Find or create results div in sidebar
   let reportDiv = document.getElementById("govuk-style-reporter");
   if (!reportDiv) {
     reportDiv = document.createElement("div");
@@ -73,19 +33,20 @@ function updateSidebarUI(foundViolations) {
     sidebarContainer.appendChild(reportDiv);
   }
 
-  // If no violations are found, clear and hide the element entirely
+  // If nothing is wrong, hide the policy report div
   if (!foundViolations || foundViolations.length === 0) {
     reportDiv.style.display = "none";
     reportDiv.innerHTML = "";
     return;
   }
 
-  // Build out the dynamic checklist showing only triggered violations
+  // Build out list of style policies not met
   reportDiv.style.display = "block";
   let htmlContent = `<h3 style="margin: 0 0 8px 0; font-size: 14px; color: #d4351c; font-weight: bold;">Style Issues Found:</h3>`;
   htmlContent += `<ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #0b0c0c; line-height: 1.4;">`;
 
   // Group occurrences by rule name
+  // TODO: Things are duplicated if the same rule is broken mulitple times. Could further group issues under the rule name.
   const grouped = {};
   foundViolations.forEach((occ) => {
     grouped[occ.name] = grouped[occ.name] || [];
@@ -110,11 +71,13 @@ function updateSidebarUI(foundViolations) {
   });
 
   htmlContent += `</ul>`;
+  // Add single static link to style guide for easy reference.
+  // TODO: Deeplink to the style guide section relevant to the rule being highlighted.
   htmlContent += `<a href="https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/style-guides/a-to-z-style-guide/" target="_blank" style="display:inline-block; margin-bottom: 12px; color:#005ea5; text-decoration:underline;">View GOV.UK style guide</a>`;
   htmlContent += `<button type="button" id="govuk-check-links-btn" style="display:block; margin-top:12px; padding:8px 12px; background-color:#005ea5; color:white; border:none; border-radius:3px; font-size:13px; cursor:pointer; font-weight:600;">Check for broken links</button>`;
   reportDiv.innerHTML = htmlContent;
 
-  // Click handler (event delegation) for Jump links
+  // Handle clicks to "jump" to the relevant content. Also opens accordions.
   reportDiv.addEventListener("click", async (e) => {
     const target = e.target;
     if (
@@ -128,16 +91,16 @@ function updateSidebarUI(foundViolations) {
       if (!occ) return;
 
       try {
-        // Ensure containing accordion is open before focusing/scrolling
+        // Open accordion before focusing and scrolling
         await openAccordionForElement(occ.textarea);
         occ.textarea.focus();
         occ.textarea.setSelectionRange(occ.start, occ.end);
 
-        // Scroll approximate position into view: use ratio of chars
+        // Scroll position into view
         const ratio = occ.start / Math.max(1, occ.textarea.value.length);
         occ.textarea.scrollTop = ratio * occ.textarea.scrollHeight;
 
-        // Briefly flash background to draw attention
+        // Briefly flash background - this might be annoying done long term
         const origBg = occ.textarea.style.backgroundColor;
         occ.textarea.style.backgroundColor = "#fff6f6";
         setTimeout(() => {
@@ -151,6 +114,7 @@ function updateSidebarUI(foundViolations) {
 }
 
 // Function to scan all document textareas against the active rules array
+// This only checks "textarea" elements at the moment. Nothing in any other kind of text field will be checked. I think this is fine at the moment, but there are probably edge-cases.
 function checkStyleViolations() {
   const textareas = document.querySelectorAll("textarea");
   const foundViolations = [];
@@ -159,12 +123,13 @@ function checkStyleViolations() {
     let textareaHasError = false;
 
     styleRules.forEach((rule) => {
-      // ensure global search so we can collect multiple matches
+      // make global
       const flags = rule.regex && rule.regex.flags ? rule.regex.flags : "";
       const flagsWithG = flags.includes("g") ? flags : flags + "g";
       const re = new RegExp(rule.regex.source, flagsWithG);
 
       let m;
+      // Find matches
       while ((m = re.exec(textarea.value)) !== null) {
         const start = m.index;
         const end = start + (m[0] ? m[0].length : 0);
@@ -182,12 +147,12 @@ function checkStyleViolations() {
         });
         textareaHasError = true;
 
-        // guard against zero-length matches causing infinite loop
+        // Ensure 0 lenght matches don't cause an infinite loop
         if (m.index === re.lastIndex) re.lastIndex++;
       }
     });
 
-    // Provide immediate visual feedback on the invalid textarea
+    // highlight textarea border if it contains an issue
     if (textareaHasError) {
       textarea.style.border = "2px solid #d4351c";
       textarea.style.outline = "none";
@@ -196,14 +161,14 @@ function checkStyleViolations() {
     }
   });
 
-  // Push updates directly down into our custom sidebar block
+  // Push updates into the sidebar div
   updateSidebarUI(foundViolations);
 }
 
-// Initialize on page load
+// Run on pageload - could add delay, hasn't seemed to need it so far
 checkStyleViolations();
 
-// Watch input changes dynamically across elements as the user edits text
+// Reruns check on every input event - probably inefficient, could narrow this to inpput events on textareas only, or debounce?
 document.addEventListener("input", (event) => {
   if (event.target.tagName.toLowerCase() === "textarea") {
     checkStyleViolations();
@@ -253,7 +218,7 @@ function displayBrokenLinksUI(brokenLinks) {
   htmlContent += `</ul>`;
   brokenLinksDiv.innerHTML = htmlContent;
 
-  // Click handler for broken link jumps
+  // Jump to broken links on click
   brokenLinksDiv.addEventListener("click", async (e) => {
     const target = e.target;
     if (
@@ -270,20 +235,20 @@ function displayBrokenLinksUI(brokenLinks) {
         await openAccordionForElement(link.textarea);
         link.textarea.focus();
 
-        // Find and select the URL in the textarea
+        // Find and select broken URL
         const start = link.textarea.value.indexOf(link.href);
         if (start !== -1) {
           const end = start + link.href.length;
           link.textarea.setSelectionRange(start, end);
 
-          // Scroll approximate position into view: use ratio of chars
+          // Scroll approximate position into view
           const ratio = start / Math.max(1, link.textarea.value.length);
           link.textarea.scrollTop = ratio * link.textarea.scrollHeight;
         } else {
           link.textarea.scrollIntoView({ behavior: "smooth", block: "center" });
         }
 
-        // Briefly flash background to draw attention
+        // Briefly flash background to draw attention - again, might get annoying
         const origBg = link.textarea.style.backgroundColor;
         link.textarea.style.backgroundColor = "#fff6f6";
         setTimeout(() => {
@@ -325,7 +290,7 @@ async function checkBrokenLinks() {
     return;
   }
 
-  // Update UI to show checking is in progress
+  // Update UI to show checking is in progress - could do with a cool unecessary spinner
   const button = document.getElementById("govuk-check-links-btn");
   const originalButtonText = button
     ? button.textContent
@@ -334,7 +299,7 @@ async function checkBrokenLinks() {
   if (button) button.disabled = true;
 
   try {
-    // Send URLs to background script for checking
+    // Send URLs to background script for checking - had to do this to get around CORS issues
     const response = await chrome.runtime.sendMessage({
       action: "checkLinks",
       urls: toCheck,
@@ -358,17 +323,17 @@ async function checkBrokenLinks() {
     console.error("Error communicating with background script:", err);
   }
 
-  // Restore button
+  // Put the button back to normal after scan
   if (button) {
     button.textContent = originalButtonText;
     button.disabled = false;
   }
 
-  // Display results
+  // Show broken links in sidebar
   displayBrokenLinksUI(brokenLinks);
 }
 
-// Helper function to open accordion for any element (used by both violations and broken links)
+// Helper function to open accordion for any element
 function openAccordionForElement(el) {
   return new Promise((resolve) => {
     if (!el || !el.closest) return resolve();
@@ -444,7 +409,7 @@ function openAccordionForElement(el) {
   });
 }
 
-// Delegate "Check for broken links" button clicks
+// Catch "Check for broken links" button clicks, and deletage
 document.addEventListener("click", (e) => {
   if (e.target && e.target.id === "govuk-check-links-btn") {
     e.preventDefault();
