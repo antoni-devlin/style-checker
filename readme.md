@@ -10,6 +10,15 @@ The style checker is a Chrome extension. It isn't signed, or available on the Ch
 It automatically triggers on any "edit" page in GOV.UK Publisher, and displays any issues it finds in the right-hand sidepanel.
 
 It currently only runs on pages that have been ported to the GOV.UK Design System. Backwards compatibility with the old GOV.UK Frontend is planned for a future release.
+## How it works
+
+When you visit an "edit" page in Mainstream publisher, the extension will check any content in a `textarea` element (a textbox meant for longform text, so not, for example, titles). It will loop through all of the policies it knows about from the `style-rules.js` file, and alter you in the sidebar of publisher if it finds any issues.
+
+It does this as soon as the page loads, and also whenever any content is changed so it will continue checking your work as you make changes in publisher - you do not need to reload the page.
+
+### Checking broken links
+
+If you click on the "Check broken links" button, it will go through the same content, identify anything that looks like a full url (i.e. beginning with http), and test them to see if they seem broken. It will list any suspected broken links it finds in the sidebar.
 
 # Installation
 
