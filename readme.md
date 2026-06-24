@@ -61,6 +61,30 @@ The only network activity is checking for broken links, and only when the "Check
 
 `background.js` makes a HEAD request to every link identified in a textarea on the current page. If the HEAD request fails, it retries with a GET request. The extension only parses the response code and does not fetch or store the linked content. To get around CORS restrictions, this had to be separate from the main `content.js` script.
 
+# What policies are currently supported?
+
+As this is an MVP, the list of things it checks for is limited. It can currently check the following:
+
+- Broken links
+- Link text that is only one word
+- Heading level 1s in body content
+- Bold text in content
+- Consecutive headings of the same level
+- Long tables
+- Tables without row or column headers
+- FAQs
+- Plain and simple English
+- Anchor links
+- Tables that are too short or have too few rows and columns
+- Acronyms and abbreviations that are not defined on first use, or abbreviations without periods
+- Passive voice
+- Bullet lists without a lead-in line
+- Negative contractions
+- Abbreviations such as “eg”, “etc”, and “ie”
+- Dates
+
+# Todo
+
 - [ ] Convert to the design system
 - [ ] Ensure accessibility compliance
 - [ ] Add an on/off toggle
