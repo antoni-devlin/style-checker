@@ -94,4 +94,4 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - [x] Split out policies into their own file
 - [ ] Write or generate short titles for each policy
 - [ ] Write docs and installation instructions
-- [ ] Change url scopes so extension only runs and injects on Publisher pages
+- [x] Change url scopes so extension only runs and injects on Publisher pages
