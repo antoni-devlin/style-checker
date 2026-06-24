@@ -10,6 +10,7 @@ The style checker is a Chrome extension. It isn't signed, or available on the Ch
 It automatically triggers on any "edit" page in GOV.UK Publisher, and displays any issues it finds in the right-hand sidepanel.
 
 It currently only runs on pages that have been ported to the GOV.UK Design System. Backwards compatibility with the old GOV.UK Frontend is planned for a future release.
+
 ## How it works
 
 When you visit an "edit" page in Mainstream publisher, the extension will check any content in a `textarea` element (a textbox meant for longform text, so not, for example, titles). It will loop through all of the policies it knows about from the `style-rules.js` file, and alter you in the sidebar of publisher if it finds any issues.
@@ -36,7 +37,29 @@ Before you installing, you need to check that you have:
 
 You'll have to follow these instructions every time you want to update the extension to a new version.
 
-## Todo
+# Security and data protection
+
+## Scope
+
+In `manifest.json`, the extension is scoped to only activate and run on URLs beginning with `https://publisher.publishing.service.gov.uk/`.
+
+## Permissions
+
+The extension currently requests `activeTab` and `scripting` permissions so it can inspect the current page and run checks when the user activates it on a supported Publisher page. These permissions are limited to the active tab and are used only for the extension's in-browser checks.
+
+## Data storage
+
+The extension runs locally in the browser and does not persist user data to disk or store it in a database. It does not collect personal or sensitive data, and it does not handle file uploads or other input beyond the content already visible on the page.
+
+The extension has access to and processes on-page content (currently only in `textarea` elements).
+
+Style policies are checked against hardcoded regex policies in `style-rules.js`.
+
+## Network access
+
+The only network activity is checking for broken links, and only when the "Check for broken links" button is pressed.
+
+`background.js` makes a HEAD request to every link identified in a textarea on the current page. If the HEAD request fails, it retries with a GET request. The extension only parses the response code and does not fetch or store the linked content. To get around CORS restrictions, this had to be separate from the main `content.js` script.
 
 - [ ] Convert to the design system
 - [ ] Ensure accessibility compliance
