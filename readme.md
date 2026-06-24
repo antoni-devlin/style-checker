@@ -85,6 +85,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 
 # Todo
 
+- [ ] Test mvp policy regexes to ensure they're working as intended
 - [ ] Convert to the design system
 - [ ] Ensure accessibility compliance
 - [ ] Add an on/off toggle
@@ -95,3 +96,4 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - [ ] Write or generate short titles for each policy
 - [ ] Write docs and installation instructions
 - [x] Change url scopes so extension only runs and injects on Publisher pages
+- [ ] Write unit tests for every policy
