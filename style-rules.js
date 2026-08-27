@@ -38,7 +38,7 @@ const styleRules = [
   {
     name: "Acronyms defined on first use, and abbreviations without periods",
     regex:
-      /\b(?!(?:UK|DVLA|USA|EU|VAT|MP)\b)(?:[A-Z]{2,6}|[A-Z](?:\.[A-Z])+\.?)\b/,
+      /\b(?!(?:HM[A-Z]*|UK|DVLA|USA|EU|VAT|MP)\b)(?:[A-Z]{2,6}|[A-Z](?:\.[A-Z])+\.?)\b/,
   },
   {
     name: "Only use the active voice",
