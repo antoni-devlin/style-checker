@@ -58,8 +58,33 @@ const styleRules = [
     regex: /\b(?:e\.?g\.?|i\.?e\.?|etc\.?)\b/,
   },
   {
-    name: "Dates",
-    regex:
-      /\b(?:\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}|tax\s+year\s+\d{4}\s+to\s+\d{4}|(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+to\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+\d{1,2}(?:am|pm)\s+to\s+\d{1,2}(?:am|pm)|\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+to\s+\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+to\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}|\(14\s+June\s+2012\))\b/,
+  name: "Dates must use capitalised month names",
+  regex:
+    /\b\d{1,2}\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/,
+  },
+  {
+  name: "Do not use a comma between month and year",
+  regex:
+    /\b\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?),\s+\d{4}\b/,
+  },
+  {
+  name: "Use 'to' instead of a hyphen or dash in date ranges",
+  regex:
+    /\b(?:\d{1,2}\s+\w+|\btax\s+year\s+\d{4})\s*[-–—]\s*(?:\d{1,2}\s+\w+|\d{4})\b/,
+  },
+  {
+  name: "Do not use quarters for dates",
+  regex:
+    /\b(?:Q[1-4]|quarter\s+[1-4]|first|second|third|fourth)\s+quarter\b/i,
+  },
+  {
+  name: "Opening times for different days must be on separate lines",
+  regex:
+    /\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+to\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),[^\r\n]*(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),/,
+  },
+  {
+  name: "Use 'on or before' for deadlines",
+  regex:
+    /\b(?:deadline|due|submit|submission)[^\r\n.!?]*\b(?:by|before)\s+\d{1,2}\s+[A-Z][a-z]+\s+\d{4}\b/i,
   },
 ];
