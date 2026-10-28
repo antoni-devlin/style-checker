@@ -27,23 +27,24 @@ function updateSidebarUI(foundViolations) {
     reportDiv.id = "govuk-style-reporter";
     reportDiv.style.marginTop = "15px";
     reportDiv.style.padding = "12px";
-    reportDiv.style.borderLeft = "4px solid #d4351c";
     reportDiv.style.backgroundColor = "#f8f8f8";
     reportDiv.style.fontFamily = "Arial, sans-serif";
     sidebarContainer.appendChild(reportDiv);
   }
 
-  // If nothing is wrong, hide the policy report div
+  // Keep the report and link checker available when there are no style issues.
   if (!foundViolations || foundViolations.length === 0) {
-    reportDiv.style.display = "none";
-    reportDiv.innerHTML = "";
+    reportDiv.style.display = "block";
+    reportDiv.innerHTML = `
+      <p class="govuk-body">No style issues found</p>
+      <button class="govuk-button govuk-button--secondary" type="button" id="govuk-check-links-btn">Check for broken links</button>
+    `;
     return;
   }
 
   // Build out list of style policies not met
   reportDiv.style.display = "block";
-  let htmlContent = `<h3 style="margin: 0 0 8px 0; font-size: 14px; color: #d4351c; font-weight: bold;">Style Issues Found:</h3>`;
-  htmlContent += `<ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #0b0c0c; line-height: 1.4;">`;
+  let htmlContent = `<h2 class="govuk-heading-m">Style Issues Found</h2>`;
 
   // Group occurrences by rule name
   // TODO: Things are duplicated if the same rule is broken mulitple times. Could further group issues under the rule name.
@@ -65,16 +66,20 @@ function updateSidebarUI(foundViolations) {
       const snippet = (occ.snippet || "")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-      htmlContent += `<li style="margin-bottom:4px;"><span style="color:#0b0c0c;">…${snippet}…</span> <a href="#" class="govuk-violation-jump" data-violation-id="${id}" style="margin-left:8px; color:#005ea5; text-decoration:underline;">Jump</a></li>`;
+        htmlContent += `
+        <li>
+        <span>${snippet}</span>
+        <a href="#" class="govuk-link govuk-violation-jump" data-violation-id="${id}">Jump</a>
+        </li>
+        `
+      // htmlContent += `<li style="margin-bottom:4px;"><span style="color:#0b0c0c;">…${snippet}…</span> <a href="#" class="govuk-violation-jump" data-violation-id="${id}" style="margin-left:8px; color:#005ea5; text-decoration:underline;">Jump</a></li>`;
     });
-    htmlContent += `</ul></li>`;
+    htmlContent += `</ul></section>`;
   });
-
-  htmlContent += `</ul>`;
   // Add single static link to style guide for easy reference.
   // TODO: Deeplink to the style guide section relevant to the rule being highlighted.
-  htmlContent += `<a href="https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/style-guides/a-to-z-style-guide/" target="_blank" style="display:inline-block; margin-bottom: 12px; color:#005ea5; text-decoration:underline;">View GOV.UK style guide</a>`;
-  htmlContent += `<button type="button" id="govuk-check-links-btn" style="display:block; margin-top:12px; padding:8px 12px; background-color:#005ea5; color:white; border:none; border-radius:3px; font-size:13px; cursor:pointer; font-weight:600;">Check for broken links</button>`;
+  htmlContent += `<a href="https://guidance.publishing.service.gov.uk/writing-to-gov-uk-standards/style-guides/a-to-z-style-guide/" target="_blank" style="display:inline-block; margin-bottom: 12px; color:#005ea5; text-decoration:underline;">View GOV.UK style guide (opens in new tab)</a>`;
+  htmlContent += `<button class="govuk-button govuk-button--secondary" type="button" id="govuk-check-links-btn">Check for broken links</button>`;
   reportDiv.innerHTML = htmlContent;
 
   // Handle clicks to "jump" to the relevant content. Also opens accordions.
@@ -212,7 +217,7 @@ function displayBrokenLinksUI(brokenLinks) {
     const hrefEscaped = (link.href || "")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    htmlContent += `<li style="margin-bottom:4px;"><span style="color:#0b0c0c;">${hrefEscaped}</span> <span style="color:#666; font-size:12px;">(${link.status})</span> <a href="#" class="govuk-broken-link-jump" data-link-id="${id}" style="margin-left:8px; color:#005ea5; text-decoration:underline;">Jump</a></li>`;
+    htmlContent += `<li style="margin-bottom:4px;"><span style="color:#0b0c0c;">${hrefEscaped}</span> <span class="govuk-body-s" font-size:12px;">(${link.status})</span> <a href="#" class="govuk-broken-link-jump" data-link-id="${id}" style="margin-left:8px; color:#005ea5; text-decoration:underline;">Jump</a></li>`;
   });
 
   htmlContent += `</ul>`;
