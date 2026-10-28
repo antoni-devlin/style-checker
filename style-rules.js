@@ -1,65 +1,97 @@
 // Style rule definitions are kept in a separate content script for easier maintenance and version control.
-// Style rule definitions are kept in a separate content script for easier maintenance and version control.
 const styleRules = [
-  { name: "Link text is only one word", regex: /\[([^\s\]]+)\]\(([^)]+)\)/ },
-  { name: "H1s in body content", regex: /^#(?!#)\s*(.+)$/ },
-  { name: "Bold in content", regex: /(\*\*|__)(.*?)\1/ },
+  { name: "Link text too short", description: "Link text should be more than one word", regex: /\[([^\s\]]+)\]\(([^)]+)\)/ },
+  { name: "H1 in body content", description: "There should be no H1s in body content", regex: /^#(?!#)\s*(.+)$/ },
+  { name: "Bold text", description: "There should be no bold text", regex: /(\*\*|__)(.*?)\1/ },
   {
     name: "Consecutive headers of the same level",
+    description: "There shouldn't be two headings of the same level in a row without any content in between",
     regex: /^(#{1,6})(.*)$\s+^\1(.*)$/,
   },
   {
-    name: "No long tables",
+    name: "Long table",
+    description: "Tables shouldn't be too long if you can avoid it.",
     regex:
       /(?:^(?:\|[^|\r\n]*){6,}\|[\r\n]+^\|[\s|:-]+\|[\r\n]+(?:^\|[^\r\n]+\|(?:[\r\n]+|$))+)|(?:^\|[^\r\n]+\|[\r\n]+^\|[\s|:-]+\|[\r\n]+(?:^\|[^\r\n]+\|[\r\n]+){11,}(?:^\|[^\r\n]+\|(?:[\r\n]+|$))*)/,
   },
   {
-    name: "Tables without row or column headers",
+    name: "Tables missing row/column headers",
+    description: "Tables need to have row and column headers",
     regex: /^(?:\|[^\r\n]+\|[\r\n]*){2,}/,
   },
   {
     name: "No FAQs",
+    description: "Don't use FAQs or frequently asked questions in content.",
     regex: /\b(FAQ|Frequently Asked Question)s?\b/i,
   },
   {
-    name: "Write in plain and simple English",
-    regex:
-      /\b(a total of|absolutely|abundantly|accede to|accelerate|accentuate|accommodation|accompanying|accomplish|accordingly|acknowledge|acquiesce|acquire|actually|adjacent|adjustment|admissible|advantageous|advise|affixafforded|aforesaid|aggregate|aligned|all things being equal|alleviate|allocate|alternative|alternatively|ameliorate|amendment|anticipate|apparent|appreciable|apprise|appropriate|approximately|as a consequence of|as of the date|as regards|ascertain|assistance|attempt|attend|authorise|basically|being the case|belated|beneficial|bestow|breach|by means of|cease|circumvent|clarification|combine|combined|commence|commenced|communicate|communicated|competent|compile|comply|component|comprise|compulsory|conceal|concerning|conclusion|concur|condition|consequently|considerable|constitute|construe|consult|consumption|contemplate|contrary|correspond|correspondance|courteous|cumulative|currently|customary|deduct|deficiency|demonstrate|denote|depict|designate|desire|despatch|determine|detrimental|difficulties|diminish|disburse|discharge|disclose|disconnect|discontinue|discrete|dispatch|disseminate|documentation|domiciled|dominant|due to the fact|duration|during the period from|during which time|dwelling|economical|elucidate|emphasise|empower|enable|enclosed|encounter|endeavour|enquire|enquiry|ensure|envisage|equivalent|erroneous|establish|evaluate|evince|exceptionally|excessive|exclude|excluding|exclusively|exempt from|expedite|expeditiously|expenditure|expire|extant|extremely|extremity|fabricate|facilitate|factor|failure to|finalise|following|for the duration of|for the purpose of|for the reason that|formulate|forthwith|frequently|furnish|further to|furthermore|generate|give consideration to|henceforth|hereby|herein|hereinafter|hereof|hereto|heretofore|hereunder|herewith|hitherto|hold in abeyance|if and when|illustrate|immediately|implement|imply|in a number of cases|in accordance with|in addition|in advance|in case of|in conjunction with|in connection with|in consequence|in due course|in excess of|in lieu of|in order that|in receipt of|in relation to|in respect of|in the absence of|in the course of|in the event|in the majority of instances|in the near future|in view of the fact that|inappropriate|inception|incorporating|incurred|indicate|inform|initially|initiate|insert|instances|intend to|irrespective|jeopardise|large number of|liaise|locate|locality|magnitude|mandatory|manner|manufacture|marginal|material|materialise|matter of fact|may in the future|merchandise|mislay|modification|moreover|negligible|nevertheless|notwithstanding|numerous|objective|obligatory|obtain|obviously|occasioned by|of course|of the opinion|on behalf of|on numerous occasions|on receipt of|on request|on the grounds that|on the occasion that|on the subject of|operate|optimum|option|ordinarily|outstanding|owing to|partially|participate|particulars|per annum|perform|permissible|percentage of|personnel|persons|peruse|possess\b|practically|preserve|principal|prior to|proceed|procure|profusion of|projected|prolonged|promptly|promulgate|proportion|provide|provided that|provisions|proximity|purchase|pursuant to|qualify for|question as to whether|quite|really|reconsider|reduce|reduction|refer to|referred to as|regard to|regarding|reimburse|reiterate|relating to|remainder|remittance|remuneration|render|require|requirements|reside|retain|revised|scrutinise|select|similarly|solely|subject to|submit|subsequent|subsequently|substantial|substantially|sufficient|supplementary|terminate|the fact of the matter is|thereafter|thereby|therein|thereof|thereto|thus|to date|to the extent that|transmit|ultimately|unavailability|undernoted|undersigned|undertake|unoccupied|until such time|utilisation|utilise|variation|virtually|visualise|ways and means|whatsoever|whensoever|whereas|whether or not|with a view to|with reference to|with regard to|with respect to|you are requested|your attention is drawn)\b|(?<![\.\?!]\s)subject access\b(?!\srequest\b)/i, // Fixed inline flag
-  },
-  {
     name: "Anchor links",
+    description: "Don't use anchor link in content",
     regex: /\[([^\]]+)\]\((?:https?:\/\/[^\s)]+)?#[^)]+\)/,
   },
   {
-    name: "Table too short, too few rows and columns",
+    name: "Short table",
+    description: "Tables shouldn't be too short - consider whether a short table could be better presented as a list.",
     regex:
       /^(?:\|[^|\r\n]+\|[\r\n]+)(?:\|[\s:-]+\|[\r\n]+)(?:\|[^|\r\n]+\|(?:[\r\n]+|$)){1,2}/,
   },
   {
-    name: "Acronyms defined on first use, and abbreviations without periods",
+    name: "Acronyms",
+    description: "Acronyms should be defined at first use, and abbreviations should not have periods",
     regex:
-      /\b(?!(?:UK|DVLA|USA|EU|VAT|MP)\b)(?:[A-Z]{2,6}|[A-Z](?:\.[A-Z])+\.?)\b/,
+      /\b(?!(?:UK|DVLA|USA|EU|VAT|MP|HMRC|MOT|NHS|PIN|DNA)\b)(?<!\([^\)]*?)(?:[A-Z]{2,6}|[A-Z](?:\.[A-Z])+\.?)\b(?!\s*\([^)]*\))(?![^()]*\))/,
+      
   },
   {
-    name: "Only use the active voice",
+    // TODO: Look into using the compromise library for this instead of regex
+    name: "Passive voice",
+    description: "Content should be written in the active voice",
     regex:
-      /\b(am|is|are|was|were|be|been|being)\b(?:\s+\w+){0,3}\s+(\w+ed|written|done|seen|taken|built|sent|chosen|given|made|kept|run|set|told|shown|held)\b/,
+      /\b(am|are|is|was|were|be|been|being|get|gets|got|gotten|getting)\b(?:\s+(?:[a-z]+ly|just|already|not|never|also|even|often|still|always|soon))*\s+(\w+ed|\w+en|built|caught|drawn|found|held|kept|left|lost|made|paid|run|said|seen|sent|sold|spent|taken|taught|told|thought|understood|won|written)\b/i,
   },
   {
-    name: "Bullet lists have a lead-in line",
+    name: "List without lead-in line",
+    description: "Bullet lists should start with a lead-in line",
     regex: /(^\s*$[\r\n]+)^\s*[*+-]\s+.+$/,
   },
   {
     name: "Negative contractions",
+    description: "Do not use negative contractions",
     regex: /\b\w+n't\b/,
   },
   {
-    name: "eg, etc, ie",
+    name: "Use of eg, etc, ie",
+    description: "Don't use abbreviations such as e.g., i.e., etc. in content",
     regex: /\b(?:e\.?g\.?|i\.?e\.?|etc\.?)\b/,
   },
   {
-    name: "Dates",
-    regex:
-      /\b(?:\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}|tax\s+year\s+\d{4}\s+to\s+\d{4}|(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+to\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+\d{1,2}(?:am|pm)\s+to\s+\d{1,2}(?:am|pm)|\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+to\s+\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+to\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}|\(14\s+June\s+2012\))\b/,
+    name: "full_date",
+    description: "Dates should be written with a 1- or 2-digit day, the full or abbreviated month name, and a 4-digit year separated by spaces (e.g., 5 May 2024 or 23 September 2021).",
+    regex: /\b\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}\b/
+  },
+  {
+    name: "tax_year_range",
+    description: "Dates should be written as 'tax year' followed by two 4-digit years separated by 'to' (e.g., tax year 2022 to 2023).",
+    regex: /\btax\s+year\s+\d{4}\s+to\s+\d{4}\b/
+  },
+  {
+    name: "weekly_operating_hours",
+    description: "Dates and times should be written with a day-of-the-week range, followed by a comma, and a 12-hour am/pm time range separated by 'to' (e.g., Monday to Friday, 9am to 5pm).",
+    regex: /\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+to\s+(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+\d{1,2}(?:am|pm)\s+to\s+\d{1,2}(?:am|pm)\b/
+  },
+  {
+    name: "date_to_date_range",
+    description: "Dates should be written as a day and full or abbreviated month, separated by 'to' from another day and month, without years (e.g., 1 June to 31 August or 5 Apr to 6 Apr).",
+    regex: /\b\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+to\s+\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/
+  },
+  {
+    name: "month_to_month_range_with_year",
+    description: "Dates should be written as two 3-letter month abbreviations separated by 'to', followed by a 4-digit year (e.g., Apr to Jun 2023).",
+    regex: /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+to\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\b/
+  },
+  {
+    name: "legacy_parenthesized_date",
+    description: "Dates should be written as the specific historical date '14 June 2012' enclosed in parentheses.",
+    regex: /\(14\s+June\s+2012\)/
   },
 ];
