@@ -1,4 +1,24 @@
+const allowedHosts = new Set([
+  "publisher.publishing.service.gov.uk",
+  "publisher.integration.publishing.service.gov.uk"
+]);
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  let senderHost;
+  try {
+    senderHost = sender.tab?.url ? new URL(sender.tab.url).hostname : null;
+  } catch {
+    senderHost = null;
+  }
+
+  if (
+    request.action !== "checkLinks" ||
+    !senderHost ||
+    !allowedHosts.has(senderHost)
+  ) {
+    return false;
+  }
+
   if (request.action === "checkLinks") {
     checkLinks(request.urls)
       .then((results) => {
