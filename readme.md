@@ -47,6 +47,8 @@ In `manifest.json`, the extension is scoped to only activate and run on URLs beg
 
 The extension currently requests `activeTab` and `scripting` permissions so it can inspect the current page and run checks when the user activates it on a supported Publisher page. These permissions are limited to the active tab and are used only for the extension's in-browser checks.
 
+Host permissions are set to `https://*/` and `http://*/` - this is required to avoid CORS errors when using the broken link checker.
+
 ## Data storage
 
 The extension runs locally in the browser and does not persist user data to disk or store it in a database. It does not collect personal or sensitive data, and it does not handle file uploads or other input beyond the content already visible on the page.
@@ -86,7 +88,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 # Todo
 
 - [ ] Test mvp policy regexes to ensure they're working as intended
-- [ ] Convert to the design system
+- [x] Convert to the design system
 - [ ] Ensure accessibility compliance
 - [ ] Add an on/off toggle
 - [x] Add 16 high-priority policies for MVP
@@ -94,6 +96,6 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - [ ] Add a "Give feedback or report a bug" link - make this a Google/Microsoft form
 - [x] Split out policies into their own file
 - [ ] Write or generate short titles for each policy
-- [ ] Write docs and installation instructions
+- [x] Write docs and installation instructions
 - [x] Change url scopes so extension only runs and injects on Publisher pages
 - [ ] Write unit tests for every policy
