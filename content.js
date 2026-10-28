@@ -55,7 +55,20 @@ function updateSidebarUI(foundViolations) {
   });
 
   Object.keys(grouped).forEach((ruleName) => {
-    htmlContent += `<li style="margin-bottom: 6px;"><strong style="font-weight:600;">${ruleName}</strong><ul style="margin:4px 0 0 12px; padding:0; list-style: none;">`;
+    const ruleDescription = styleRules.find((rule) => rule.name === ruleName)?.description;
+    const escapedDescription = ruleDescription
+      ?.replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const descriptionIcon = escapedDescription
+      ? `<button type="button" title="${escapedDescription}" aria-label="Rule description: ${escapedDescription}" style="width: 18px; height: 18px; margin-left: 6px; padding: 0; border: 1px solid #505a5f; border-radius: 50%; background: #fff; color: #505a5f; font: bold 12px Arial, sans-serif; line-height: 16px; vertical-align: middle; cursor: help;">i</button>`
+      : "";
+    htmlContent += `
+    <section>
+    <h3 class='govuk-heading-s'>${ruleName}${descriptionIcon}</h3>
+    <ul class="govuk-list govuk-list--bullet">
+    `
     grouped[ruleName].forEach((occ) => {
       const id = "govuk-violation-" + Math.random().toString(36).substr(2, 9);
       window.__govukStyleViolations[id] = {
