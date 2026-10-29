@@ -75,7 +75,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - Long tables
 - Tables without row or column headers
 - FAQs
-- Plain and simple English
+- Plain and simple English (this was flagging loads of false positives so has been disabled in the latest release)
 - Anchor links
 - Tables that are too short or have too few rows and columns
 - Acronyms and abbreviations that are not defined on first use, or abbreviations without periods
@@ -87,7 +87,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 
 # Todo
 
-- [ ] Test mvp policy regexes to ensure they're working as intended
+- [x] Test mvp policy regexes to ensure they're working as intended
 - [x] Convert to the design system
 - [ ] Ensure accessibility compliance
 - [ ] Add an on/off toggle
@@ -95,7 +95,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - [ ] Ensure extension works on all GOV.UK Publisher pages, including old GOV.UK Frontend
 - [ ] Add a "Give feedback or report a bug" link - make this a Google/Microsoft form
 - [x] Split out policies into their own file
-- [ ] Write or generate short titles for each policy
+- [x] Write or generate short titles for each policy
 - [x] Write docs and installation instructions
 - [x] Change url scopes so extension only runs and injects on Publisher pages
 - [ ] Write unit tests for every policy
