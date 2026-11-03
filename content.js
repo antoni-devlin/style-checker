@@ -147,7 +147,46 @@ function checkStyleViolations() {
   textareas.forEach((textarea) => {
     let textareaHasError = false;
 
+    const addViolation = (rule, start, end) => {
+      const contextStart = Math.max(0, start - 20);
+      const contextEnd = Math.min(textarea.value.length, end + 20);
+      const snippet = textarea.value
+        .substring(contextStart, contextEnd)
+        .replace(/\s+/g, " ");
+      foundViolations.push({
+        name: rule.name,
+        textarea,
+        start,
+        end,
+        snippet,
+      });
+      textareaHasError = true;
+    };
+
     styleRules.forEach((rule) => {
+      if (rule.compromiseMatches) {
+        if (typeof nlp !== "function") {
+          console.error("GovUK style checker: Compromise library is unavailable.");
+          return;
+        }
+
+        const matchedOffsets = new Set();
+        rule.compromiseMatches.forEach((pattern) => {
+          nlp(textarea.value)
+            .match(pattern)
+            .json({ offset: true })
+            .forEach(({ offset }) => {
+              const end = offset.start + offset.length;
+              const key = `${offset.start}:${end}`;
+              if (!matchedOffsets.has(key)) {
+                addViolation(rule, offset.start, end);
+                matchedOffsets.add(key);
+              }
+            });
+        });
+        return;
+      }
+
       // make global
       const flags = rule.regex && rule.regex.flags ? rule.regex.flags : "";
       const flagsWithG = flags.includes("g") ? flags : flags + "g";
@@ -158,19 +197,7 @@ function checkStyleViolations() {
       while ((m = re.exec(textarea.value)) !== null) {
         const start = m.index;
         const end = start + (m[0] ? m[0].length : 0);
-        const contextStart = Math.max(0, start - 20);
-        const contextEnd = Math.min(textarea.value.length, end + 20);
-        const snippet = textarea.value
-          .substring(contextStart, contextEnd)
-          .replace(/\s+/g, " ");
-        foundViolations.push({
-          name: rule.name,
-          textarea,
-          start,
-          end,
-          snippet,
-        });
-        textareaHasError = true;
+        addViolation(rule, start, end);
 
         // Ensure 0 lenght matches don't cause an infinite loop
         if (m.index === re.lastIndex) re.lastIndex++;

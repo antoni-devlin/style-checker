@@ -17,7 +17,7 @@
         "https://publisher.publishing.service.gov.uk/*",
         "https://publisher.integration.publishing.service.gov.uk/*"
       ],
-      "js": ["style-rules.js", "content.js"],
+      "js": ["style-rules.js", "compromise-14.19.0.min.js", "content.js"],
       "css": ["govuk-frontend-6.5.1.min.css"],
       "run_at": "document_idle"
     }
