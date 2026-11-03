@@ -13,7 +13,7 @@ It currently only runs on pages that have been ported to the GOV.UK Design Syste
 
 ## How it works
 
-When you visit an "edit" page in Mainstream publisher, the extension will check any content in a `textarea` element (a textbox meant for longform text, so not, for example, titles). It will loop through all of the policies it knows about from the `style-rules.js` file, and alter you in the sidebar of publisher if it finds any issues.
+When you visit an "edit" page in Mainstream publisher, the extension will check any content in a `textarea` element (a textbox meant for longform text, so not, for example, titles). It will loop through all of the policies it knows about from the `style-rules.js` file, and alert you in the sidebar of publisher if it finds any issues. Most policies use regular expressions; passive voice is checked with the bundled Compromise library.
 
 It does this as soon as the page loads, and also whenever any content is changed so it will continue checking your work as you make changes in publisher - you do not need to reload the page.
 
@@ -55,7 +55,7 @@ The extension runs locally in the browser and does not persist user data to disk
 
 The extension has access to and processes on-page content (currently only in `textarea` elements).
 
-Style policies are checked against hardcoded regex policies in `style-rules.js`.
+Style policies are defined in `style-rules.js`. Most use regular expressions, while passive voice uses the bundled Compromise library. All checks run locally in the browser.
 
 ## Network access
 
@@ -80,6 +80,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - Tables that are too short or have too few rows and columns
 - Acronyms and abbreviations that are not defined on first use, or abbreviations without periods
 - Passive voice
+- Sentences longer than 25 words
 - Bullet lists without a lead-in line
 - Negative contractions
 - Abbreviations such as “eg”, “etc”, and “ie”

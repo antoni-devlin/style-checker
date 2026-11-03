@@ -43,11 +43,28 @@ const styleRules = [
       
   },
   {
-    // TODO: Look into using the compromise library for this instead of regex
     name: "Passive voice",
-    description: "Content should be written in the active voice",
+    description:
+      "Use the active voice where possible. For example, 'You need an ETA' instead of 'An ETA is needed'.",
+    compromiseMatches: [
+      "#Passive+",
+      "#Modal be #PastTense",
+      "#Copula needed",
+      "#Copula required",
+      "#Copula recommended",
+      "#Copula expected",
+      "#Modal be needed",
+      "#Modal be required",
+      "#Modal be recommended",
+      "#Modal be expected",
+    ],
+  },
+  {
+    name: "Long sentences",
+    description:
+      "Try to split up sentences that are over 25 words long.",
     regex:
-      /\b(am|are|is|was|were|be|been|being|get|gets|got|gotten|getting)\b(?:\s+(?:[a-z]+ly|just|already|not|never|also|even|often|still|always|soon))*\s+(\w+ed|\w+en|built|caught|drawn|found|held|kept|left|lost|made|paid|run|said|seen|sent|sold|spent|taken|taught|told|thought|understood|won|written)\b/i,
+      /(?<=^|[.!?]["'’”)]*\s)\s*(?:(?!\S*[.!?]["'’”)]*\s)(?=\S*[A-Za-z0-9])\S+\s+){25,}\S*[.!?]["'’”)]*(?=\s|$)/,
   },
   {
     name: "List without lead-in line",
