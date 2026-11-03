@@ -7,15 +7,22 @@ window.__govukStyleViolations = window.__govukStyleViolations || {};
 // Map of insteances of broken links
 window.__govukBrokenLinks = window.__govukBrokenLinks || {};
 
+function getSidebarContainer() {
+  return (
+    document.querySelector(".sidebar-components--open") ||
+    document.querySelector(".sidebar-components") ||
+    document.querySelector(".link-check-report")
+  );
+}
+
 // Function to update the sidebar when a style rule match is found
 // Publisher has an exisiting element with class 'sidebar-components', so can inject stuff into it. Style checks and broken link stuff will appear under the "Preview" link
 function updateSidebarUI(foundViolations) {
-  // Finds sidebar
-  const sidebarContainer = document.querySelector(".sidebar-components");
+  const sidebarContainer = getSidebarContainer();
 
   if (!sidebarContainer) {
     console.warn(
-      "Lorem Checker: Target container '.sidebar-components' not found on this page."
+      "No sidebar container found on this page."
     );
     return;
   }
@@ -195,7 +202,7 @@ document.addEventListener("input", (event) => {
 
 // Function to display broken links in the sidebar
 function displayBrokenLinksUI(brokenLinks) {
-  const sidebarContainer = document.querySelector(".sidebar-components");
+  const sidebarContainer = getSidebarContainer();
   if (!sidebarContainer) return;
 
   let brokenLinksDiv = document.getElementById("govuk-broken-links-reporter");
