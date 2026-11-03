@@ -17,6 +17,10 @@ When you visit an "edit" page in Mainstream publisher, the extension will check 
 
 It does this as soon as the page loads, and also whenever any content is changed so it will continue checking your work as you make changes in publisher - you do not need to reload the page.
 
+## Disabling rules
+
+Use the "choose policies" button in the sidebar to turn individual style policies on or off. Your choices are saved locally in your browser and will persist until you change them again.
+
 ### Checking broken links
 
 If you click on the "Check broken links" button, it will go through the same content, identify anything that looks like a full url (i.e. beginning with http), and test them to see if they seem broken. It will list any suspected broken links it finds in the sidebar.
@@ -45,13 +49,13 @@ In `manifest.json`, the extension is scoped to only activate and run on URLs beg
 
 ## Permissions
 
-The extension currently requests `activeTab` and `scripting` permissions so it can inspect the current page and run checks when the user activates it on a supported Publisher page. These permissions are limited to the active tab and are used only for the extension's in-browser checks.
+The extension requests `activeTab`, `scripting` and `storage` permissions. Storage is used only to remember which style policies the user has disabled.
 
 Host permissions are set to `https://*/` and `http://*/` - this is required to avoid CORS errors when using the broken link checker.
 
 ## Data storage
 
-The extension runs locally in the browser and does not persist user data to disk or store it in a database. It does not collect personal or sensitive data, and it does not handle file uploads or other input beyond the content already visible on the page.
+The extension runs locally in the browser and does not persist page content. It saves the user's disabled policy IDs in Chrome storage so those preferences apply on future pages. It does not collect personal or sensitive data, and it does not handle file uploads or other input beyond the content already visible on the page.
 
 The extension has access to and processes on-page content (currently only in `textarea` elements).
 
@@ -79,7 +83,6 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - Anchor links
 - Tables that are too short or have too few rows and columns
 - Acronyms and abbreviations that are not defined on first use, or abbreviations without periods
-- Passive voice
 - Bullet lists without a lead-in line
 - Negative contractions
 - Abbreviations such as “eg”, “etc”, and “ie”
@@ -89,14 +92,13 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 
 - [x] Test mvp policy regexes to ensure they're working as intended
 - [x] Convert to the design system
-- [ ] Ensure accessibility compliance
+- [x] Ensure accessibility compliance
 - [ ] Add an on/off toggle
-- [ ] Add a toggle for specific policies
+- [x] Add a toggle for specific policies
 - [x] Add 16 high-priority policies for MVP
-- [ ] Ensure extension works on all GOV.UK Publisher pages, including old GOV.UK Frontend
-- [ ] Add a "Give feedback or report a bug" link - make this a Google/Microsoft form
+- [x] Ensure extension works on all GOV.UK Publisher pages, including old GOV.UK Frontend
 - [x] Split out policies into their own file
 - [x] Write or generate short titles for each policy
 - [x] Write docs and installation instructions
 - [x] Change url scopes so extension only runs and injects on Publisher pages
-- [ ] Write unit tests for every policy
+- [x] Write unit tests for every policy

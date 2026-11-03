@@ -3,7 +3,7 @@
   "name": "GOV.UK Style Assistant",
   "version": "0.1",
   "description": "Checks publisher content for style issues and broken links.",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://*/",
     "http://*/"

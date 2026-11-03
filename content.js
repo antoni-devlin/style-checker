@@ -7,6 +7,17 @@ window.__govukStyleViolations = window.__govukStyleViolations || {};
 // Map of insteances of broken links
 window.__govukBrokenLinks = window.__govukBrokenLinks || {};
 
+const POLICY_SETTINGS_KEY = "govukDisabledStyleRules";
+let disabledStyleRuleIds = new Set();
+let policySettingsLoaded = false;
+
+function getPolicyCountText() {
+  const activeCount = styleRules.filter(
+    (rule) => !disabledStyleRuleIds.has(rule.id)
+  ).length;
+  return `Checking ${activeCount}/${styleRules.length} available style rules.`;
+}
+
 function getSidebarContainer() {
   return (
     document.querySelector(".sidebar-components--open") ||
@@ -44,6 +55,8 @@ function updateSidebarUI(foundViolations) {
     reportDiv.style.display = "block";
     reportDiv.innerHTML = `
       <p class="govuk-body">No style issues found</p>
+      <button class="govuk-button govuk-button--secondary" type="button" id="govuk-policy-settings-btn">Choose policies</button>
+      <p class="govuk-body-s" id="govuk-policy-count">${getPolicyCountText()}</p>
       <button class="govuk-button govuk-button--secondary" type="button" id="govuk-check-links-btn">Check for broken links</button>
     `;
     return;
@@ -51,7 +64,7 @@ function updateSidebarUI(foundViolations) {
 
   // Build out list of style policies not met
   reportDiv.style.display = "block";
-  let htmlContent = `<h2 class="govuk-heading-m">Style Issues Found</h2>`;
+  let htmlContent = `<h2 class="govuk-heading-m">Style Issues Found</h2><button class="govuk-button govuk-button--secondary" type="button" id="govuk-policy-settings-btn">Choose policies</button><p class="govuk-body-s" id="govuk-policy-count">${getPolicyCountText()}</p>`;
 
   // Group occurrences by rule name
   // TODO: Things are duplicated if the same rule is broken mulitple times. Could further group issues under the rule name.
@@ -141,6 +154,8 @@ function updateSidebarUI(foundViolations) {
 // Function to scan all document textareas against the active rules array
 // This only checks "textarea" elements at the moment. Nothing in any other kind of text field will be checked. I think this is fine at the moment, but there are probably edge-cases.
 function checkStyleViolations() {
+  if (!policySettingsLoaded) return;
+
   const textareas = document.querySelectorAll("textarea");
   const foundViolations = [];
 
@@ -148,6 +163,8 @@ function checkStyleViolations() {
     let textareaHasError = false;
 
     styleRules.forEach((rule) => {
+      if (disabledStyleRuleIds.has(rule.id)) return;
+
       // make global
       const flags = rule.regex && rule.regex.flags ? rule.regex.flags : "";
       const flagsWithG = flags.includes("g") ? flags : flags + "g";
@@ -190,8 +207,193 @@ function checkStyleViolations() {
   updateSidebarUI(foundViolations);
 }
 
-// Run on pageload - could add delay, hasn't seemed to need it so far
-checkStyleViolations();
+function ensurePolicySettingsDialog() {
+  let dialog = document.getElementById("govuk-policy-settings-dialog");
+  if (dialog) return dialog;
+
+  dialog = document.createElement("dialog");
+  dialog.id = "govuk-policy-settings-dialog";
+  dialog.setAttribute("aria-labelledby", "govuk-policy-settings-title");
+  dialog.style.maxHeight = "80vh";
+  dialog.style.maxWidth = "36em";
+  dialog.style.overflowY = "auto";
+
+  const title = document.createElement("h2");
+  title.id = "govuk-policy-settings-title";
+  title.className = "govuk-heading-m";
+  title.textContent = "Choose style policies";
+  dialog.appendChild(title);
+
+  const description = document.createElement("p");
+  description.className = "govuk-body";
+  description.textContent =
+    "Choose which policies to check. Your choices are saved in this browser.";
+  dialog.appendChild(description);
+
+  const status = document.createElement("p");
+  status.id = "govuk-policy-settings-status";
+  status.className = "govuk-body";
+  status.setAttribute("role", "status");
+  dialog.appendChild(status);
+
+  const checkboxGroup = document.createElement("div");
+  checkboxGroup.className = "govuk-checkboxes";
+  checkboxGroup.setAttribute("data-module", "govuk-checkboxes");
+
+  styleRules.forEach((rule) => {
+    const item = document.createElement("div");
+    item.className = "govuk-checkboxes__item";
+
+    const checkbox = document.createElement("input");
+    checkbox.className = "govuk-checkboxes__input";
+    checkbox.type = "checkbox";
+    checkbox.id = `govuk-policy-${rule.id}`;
+    checkbox.dataset.policyId = rule.id;
+    checkbox.checked = !disabledStyleRuleIds.has(rule.id);
+
+    const label = document.createElement("label");
+    label.className = "govuk-label govuk-checkboxes__label";
+    label.htmlFor = checkbox.id;
+    label.textContent = rule.name;
+
+    item.append(checkbox, label);
+    checkboxGroup.appendChild(item);
+  });
+  dialog.appendChild(checkboxGroup);
+
+  const toggleAllButton = document.createElement("button");
+  toggleAllButton.className = "govuk-button govuk-button--secondary";
+  toggleAllButton.type = "button";
+  toggleAllButton.id = "govuk-policy-toggle-all-btn";
+  toggleAllButton.addEventListener("click", async () => {
+    const previousDisabledIds = new Set(disabledStyleRuleIds);
+    if (disabledStyleRuleIds.size === 0) {
+      disabledStyleRuleIds = new Set(styleRules.map((rule) => rule.id));
+    } else {
+      disabledStyleRuleIds.clear();
+    }
+    updatePolicySettingsControls();
+    await savePolicySettings(previousDisabledIds);
+  });
+  dialog.appendChild(toggleAllButton);
+
+  const closeButton = document.createElement("button");
+  closeButton.className = "govuk-button";
+  closeButton.type = "button";
+  closeButton.textContent = "Done";
+  closeButton.addEventListener("click", () => dialog.close());
+  dialog.appendChild(closeButton);
+
+  dialog.addEventListener("close", () => {
+    document.getElementById("govuk-policy-settings-btn")?.focus();
+  });
+
+  dialog.addEventListener("click", async (event) => {
+    if (event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    const clickedOutside =
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom;
+    if (!clickedOutside) return;
+
+    if (await savePolicySettings(new Set(disabledStyleRuleIds))) {
+      dialog.close();
+    }
+  });
+
+  document.body.appendChild(dialog);
+  return dialog;
+}
+
+function updatePolicySettingsControls() {
+  const dialog = document.getElementById("govuk-policy-settings-dialog");
+  if (!dialog) return;
+
+  dialog.querySelectorAll("[data-policy-id]").forEach((checkbox) => {
+    checkbox.checked = !disabledStyleRuleIds.has(checkbox.dataset.policyId);
+  });
+  const toggleAllButton = document.getElementById("govuk-policy-toggle-all-btn");
+  if (toggleAllButton) {
+    toggleAllButton.textContent =
+      disabledStyleRuleIds.size === 0 ? "Deselect all" : "Select all";
+  }
+}
+
+async function savePolicySettings(previousDisabledIds) {
+  const status = document.getElementById("govuk-policy-settings-status");
+  if (status) status.textContent = "";
+  const dialog = document.getElementById("govuk-policy-settings-dialog");
+  const controls = dialog
+    ? dialog.querySelectorAll("[data-policy-id], #govuk-policy-toggle-all-btn")
+    : [];
+  controls.forEach((control) => {
+    control.disabled = true;
+  });
+
+  try {
+    await chrome.storage.local.set({
+      [POLICY_SETTINGS_KEY]: [...disabledStyleRuleIds],
+    });
+    checkStyleViolations();
+    return true;
+  } catch (error) {
+    disabledStyleRuleIds = new Set(previousDisabledIds);
+    updatePolicySettingsControls();
+    if (status) {
+      status.textContent = "Could not save your policy settings. Please try again.";
+    }
+    console.error("GovUK style checker: could not save policy settings", error);
+    return false;
+  } finally {
+    controls.forEach((control) => {
+      control.disabled = false;
+    });
+  }
+}
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest("#govuk-policy-settings-btn")) {
+    event.preventDefault();
+    const dialog = ensurePolicySettingsDialog();
+    updatePolicySettingsControls();
+    dialog.showModal();
+  }
+});
+
+document.addEventListener("change", async (event) => {
+  const checkbox = event.target.closest("[data-policy-id]");
+  if (!checkbox || !policySettingsLoaded) return;
+
+  const previousDisabledIds = new Set(disabledStyleRuleIds);
+  const policyId = checkbox.dataset.policyId;
+  if (checkbox.checked) disabledStyleRuleIds.delete(policyId);
+  else disabledStyleRuleIds.add(policyId);
+  updatePolicySettingsControls();
+  await savePolicySettings(previousDisabledIds);
+});
+
+async function loadPolicySettings() {
+  try {
+    const settings = await chrome.storage.local.get(POLICY_SETTINGS_KEY);
+    const disabledIds = settings[POLICY_SETTINGS_KEY] || [];
+    if (!Array.isArray(disabledIds)) {
+      throw new TypeError("Saved disabled policy settings must be an array.");
+    }
+    const knownIds = new Set(styleRules.map((rule) => rule.id));
+    disabledStyleRuleIds = new Set(
+      disabledIds.filter((id) => knownIds.has(id))
+    );
+  } catch (error) {
+    console.error("GovUK style checker: could not load policy settings", error);
+  } finally {
+    policySettingsLoaded = true;
+    checkStyleViolations();
+  }
+}
+
+loadPolicySettings();
 
 // Reruns check on every input event - probably inefficient, could narrow this to inpput events on textareas only, or debounce?
 document.addEventListener("input", (event) => {
@@ -211,7 +413,6 @@ function displayBrokenLinksUI(brokenLinks) {
     brokenLinksDiv.id = "govuk-broken-links-reporter";
     brokenLinksDiv.style.marginTop = "15px";
     brokenLinksDiv.style.padding = "12px";
-    brokenLinksDiv.style.borderLeft = "4px solid #d4351c";
     brokenLinksDiv.style.backgroundColor = "#f8f8f8";
     brokenLinksDiv.style.fontFamily = "Arial, sans-serif";
     sidebarContainer.appendChild(brokenLinksDiv);
@@ -219,13 +420,16 @@ function displayBrokenLinksUI(brokenLinks) {
 
   if (!brokenLinks || brokenLinks.length === 0) {
     brokenLinksDiv.style.display = "block";
-    brokenLinksDiv.innerHTML = `<h3 style="margin: 0 0 8px 0; font-size: 14px; color: #0b7f1f; font-weight: bold;">✓ No broken links found</h3>`;
+    brokenLinksDiv.innerHTML = `
+      <h2 class="govuk-heading-m">Broken links</h2>
+      <p class="govuk-body">No broken links found</p>
+    `;
     return;
   }
 
   brokenLinksDiv.style.display = "block";
-  let htmlContent = `<h3 style="margin: 0 0 8px 0; font-size: 14px; color: #d4351c; font-weight: bold;">Broken Links Found:</h3>`;
-  htmlContent += `<ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #0b0c0c; line-height: 1.4;">`;
+  let htmlContent = `<h2 class="govuk-heading-m">Broken links found</h2>`;
+  htmlContent += `<ul class="govuk-list govuk-list--bullet">`;
 
   brokenLinks.forEach((link) => {
     const id = "govuk-broken-link-" + Math.random().toString(36).substr(2, 9);
@@ -237,7 +441,7 @@ function displayBrokenLinksUI(brokenLinks) {
     const hrefEscaped = (link.href || "")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    htmlContent += `<li style="margin-bottom:4px;"><span style="color:#0b0c0c;">${hrefEscaped}</span> <span class="govuk-body-s" font-size:12px;">(${link.status})</span> <a href="#" class="govuk-broken-link-jump" data-link-id="${id}" style="margin-left:8px; color:#005ea5; text-decoration:underline;">Jump</a></li>`;
+    htmlContent += `<li><span class="govuk-body">${hrefEscaped}</span> <span class="govuk-body-s">(${link.status})</span> <a href="#" class="govuk-link govuk-broken-link-jump" data-link-id="${id}">Jump</a></li>`;
   });
 
   htmlContent += `</ul>`;
