@@ -9,7 +9,7 @@ The style checker is a Chrome extension. It isn't signed, or available on the Ch
 
 It automatically triggers on any "edit" page in GOV.UK Publisher, and displays any issues it finds in the right-hand sidepanel.
 
-It currently only runs on pages that have been ported to the GOV.UK Design System. Backwards compatibility with the old GOV.UK Frontend is planned for a future release.
+It is fully tested on Publisher pages that have been ported to the GOV.UK Design System. Backwards compatibility with Publisher pages using the old bootstrp styling (e.g. simple smart answers) are best-effort and may have issues.
 
 ## How it works
 
@@ -91,6 +91,7 @@ As this is an MVP, the list of things it checks for is limited. It can currently
 - [x] Convert to the design system
 - [ ] Ensure accessibility compliance
 - [ ] Add an on/off toggle
+- [ ] Add a toggle for specific policies
 - [x] Add 16 high-priority policies for MVP
 - [ ] Ensure extension works on all GOV.UK Publisher pages, including old GOV.UK Frontend
 - [ ] Add a "Give feedback or report a bug" link - make this a Google/Microsoft form
