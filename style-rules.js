@@ -60,8 +60,9 @@ const styleRules = [
     regex: /\b\w+n't\b/,
   },
   {
-    name: "Use of eg, etc, ie",
-    description: "Don't use abbreviations such as e.g., i.e., etc. in content",
+    // TODO: refine this as it currently flag .ie TLDs.
+    name: "eg, etc, ie",
+    description: "Don't use 'eg', 'etc', or 'ie'",
     regex: /\b(?:e\.?g\.?|i\.?e\.?|etc\.?)\b/,
   },
   {
